@@ -3,6 +3,7 @@ const express = require('express')
 const mockAPIResponse = require('./mockAPI.js')
 const dotenv = require('dotenv');
 const https = require('https');
+const axios = require('axios').default;
 
 dotenv.config();
 
@@ -26,38 +27,14 @@ app.get('/test', function (req, res) {
     res.send(mockAPIResponse)
 })
 
-app.get('/meaningCloud', function (request, response) {
+app.get('/meaningCloud', async function (request, response) {
 
-    const data = JSON.stringify({
-        key: process.env.API_KEY,
-        lang: 'auto',
-        txt: 'According to all known laws of aviation there is no way a bee should be able to fly',
-    })
+    console.log(request.query);
 
-    const options = {
-        hostname: 'api.meaningcloud.com',
-        path: '/sentiment-2.1',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'multipart/form-data',
-            'Content-Length': data.length,
-        },
-    }
+    const API_KEY = process.env.API_KEY;
+    const BASE_API_URL = "https://api.meaningcloud.com/sentiment-2.1";
 
-    const req = https.request(options, res => {
-        console.log(`statusCode: ${res.statusCode}`)
-        res.on('data', d => {
-            process.stdout.write(d);
-            // console.log(JSON.parse());
-            // response.send(d);
-        })
-    })
-
-    req.on('error', error => {
-    console.error(error)
-    })
-
-    req.write(data)
-    req.end()
+    const apiResponse = await axios.get(`${BASE_API_URL}?key=${API_KEY}&url=${request.query.q}&lang=en`);
+    response.send(apiResponse.data);
 
 })
